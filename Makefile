@@ -15,7 +15,8 @@ deploy:
 			--name 'adf-deployment' \
 			--subscription ${SUBSCRIPTION} \
 			--location westeurope \
-			--template-file ./bicep/main.bicep; \
+			--template-file ./bicep/main.bicep \
+		>> resources.json; \
     fi
 clean:
 	@if [ -z ${SUBSCRIPTION} ]; then \
@@ -36,7 +37,7 @@ what-if:
 			echo "Run: 'make clean SUBSCRIPTION=<subscriptionId>'"; \
 			exit 1; \
 	else \
-		@echo "Checking changes after deploying to subscription ${SUBSCRIPTION}"; \
+		echo "Checking changes after deploying to subscription ${SUBSCRIPTION}"; \
 		az deployment sub create \
 			--name 'adf-deployment' \
 			--subscription ${SUBSCRIPTION} \
