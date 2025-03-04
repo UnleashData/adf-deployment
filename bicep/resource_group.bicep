@@ -7,17 +7,28 @@ resource resourceGroup 'Microsoft.Resources/resourceGroups@2024-11-01' = {
   location: deployment().location
 }
 
-module storageAccount 'storage.bicep' = {
-  name: 'storage-${environment}'
+module resources 'resources.bicep'= {
+  name: 'resources-${environment}'
   scope: resourceGroup
   params: {
     environment: environment
   }
 }
 
-output resources object = {
-  environment: environment
-  storage: storageAccount.outputs.storage_name
-}
+// module keyVault 'key_vault.bicep' = {
+//   name: 'key-vault-${environment}'
+//   scope: resourceGroup
+//   params: {
+//     environment: environment
+//   }
+// }
+
+// output resources object = {
+//   environment: environment
+//   storage: storageAccount.outputs.storage_name
+//   key_vault: keyVault.outputs.key_vault_name
+//   // dodać container name
+//   data_factory: dataFactory.name
+// }
 
 //dependsOn 

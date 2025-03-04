@@ -1,6 +1,6 @@
 targetScope = 'subscription'
 
-var environments = ['dev', 'tst', 'prd']
+var environments = ['dev'] //['dev', 'tst', 'prd']
 
 @description('markdown')
 module resourceGroup 'resource_group.bicep' = [for environment in environments : {
@@ -11,4 +11,4 @@ module resourceGroup 'resource_group.bicep' = [for environment in environments :
   }
 }]
 
-output resources array = [for i in range(0, length(environments)) : resourceGroup[i].outputs.resources]
+// output resources array = [for i in range(0, length(environments)) : resourceGroup[i].outputs.resources]
