@@ -15,20 +15,4 @@ module resources 'resources.bicep'= {
   }
 }
 
-// module keyVault 'key_vault.bicep' = {
-//   name: 'key-vault-${environment}'
-//   scope: resourceGroup
-//   params: {
-//     environment: environment
-//   }
-// }
-
-// output resources object = {
-//   environment: environment
-//   storage: storageAccount.outputs.storage_name
-//   key_vault: keyVault.outputs.key_vault_name
-//   // dodać container name
-//   data_factory: dataFactory.name
-// }
-
-//dependsOn 
+// output

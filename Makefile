@@ -16,6 +16,7 @@ deploy:
 			--subscription ${SUBSCRIPTION} \
 			--location westeurope \
 			--template-file ./bicep/main.bicep \
+			--only-show-errors \
 		>> resources.json; \
     fi
 clean:
@@ -43,5 +44,6 @@ what-if:
 			--subscription ${SUBSCRIPTION} \
 			--location westeurope \
 			--template-file ./bicep/main.bicep \
+			--only-show-errors \
 			--what-if; \
 	fi
