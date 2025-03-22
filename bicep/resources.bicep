@@ -68,11 +68,23 @@ var storageSasToken = listAccountSAS(storageAccount.name, '2021-04-01', {
 
 // Data Factory
 
+var repoConfiguration = {
+    accountName: 'Michael-Wisniewski'
+    repositoryName: 'test_adf'
+    disablePublish: true
+    collaborationBranch: 'main'
+    rootFolder: '/adf'
+    type: 'FactoryGitHubConfiguration'
+  }
+
 resource dataFactory 'Microsoft.DataFactory/factories@2018-06-01' = {
   name: 'adf${namePostfix}'
   location: location
   identity: {
     type: 'SystemAssigned'
+  }
+  properties: {
+    repoConfiguration: repoConfiguration
   }
 }
 
