@@ -2,6 +2,8 @@
 
 SUBSCRIPTION?=""
 
+# add function that check if az cli was installed with correct version
+
 help:
 	@echo "Update later"
 deploy:

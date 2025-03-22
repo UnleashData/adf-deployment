@@ -1,16 +1,16 @@
 targetScope = 'resourceGroup'
 
 param environment string
+param dateTime string = utcNow()
 
-var containerNames = ['raw', 'curated', 'cleansed']
-
-var storageBlobDataContributorRoleId = subscriptionResourceId(
-  'Microsoft.Authorization/roleDefinitions',
-  'ba92f5b4-2d11-453d-a403-e96b0029c9fe'
-)
 var keyVaultReaderRoleId = subscriptionResourceId(
   'Microsoft.Authorization/roleDefinitions',
   '21090545-7ca7-4776-b22c-e363652d74d2'
+)
+
+var keyVaultSecretsUserRoleId = subscriptionResourceId(
+  'Microsoft.Authorization/roleDefinitions',
+  '4633458b-17de-408a-b874-0445c86b69e6'
 )
 
 var keyVaultAdministratorRoleId = subscriptionResourceId(
@@ -18,22 +18,18 @@ var keyVaultAdministratorRoleId = subscriptionResourceId(
   '00482a5a-887f-4fb3-b363-3b7fe8e74483'
 )
 
+var location = resourceGroup().location
+var tenantId = subscription().tenantId
+
 // A unique string created based on the group's resource id.
 // It is used to assign unique names to resources created within a resource group.
 var namePostfix = '${environment}${uniqueString(resourceGroup().id)}'
 
-var location = resourceGroup().location
-var tenantId = subscription().tenantId
+// Used to create sas token with one month validity.
+var nextMonthDateTime = dateTimeAdd(dateTime, 'P1M')
 
-// Data Factory
+var containerNames = ['raw', 'curated', 'cleansed']
 
-resource dataFactory 'Microsoft.DataFactory/factories@2018-06-01' = {
-  name: 'adf${namePostfix}'
-  location: location
-  identity: {
-    type: 'SystemAssigned'
-  }
-}
 
 // Storage
 
@@ -62,13 +58,21 @@ resource containers 'Microsoft.Storage/storageAccounts/blobServices/containers@2
   }
 }]
 
-resource adfStorageRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
-  scope: storageAccount
-  name: guid(storageAccount.id, dataFactory.id, storageBlobDataContributorRoleId)
-  properties: {
-    roleDefinitionId: storageBlobDataContributorRoleId
-    principalId: dataFactory.identity.principalId
-    principalType: 'ServicePrincipal'
+var storageSasToken = listAccountSAS(storageAccount.name, '2021-04-01', {
+  signedProtocol: 'https'
+  signedResourceTypes: 'sco'
+  signedPermission: 'rl'
+  signedServices: 'b'
+  signedExpiry: nextMonthDateTime
+}).accountSasToken
+
+// Data Factory
+
+resource dataFactory 'Microsoft.DataFactory/factories@2018-06-01' = {
+  name: 'adf${namePostfix}'
+  location: location
+  identity: {
+    type: 'SystemAssigned'
   }
 }
 
@@ -89,11 +93,35 @@ resource keyVault 'Microsoft.KeyVault/vaults@2024-11-01' = {
   }
 }
 
-resource adfKeyVaultRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+var storageSasConnectionString = '${storageAccount.properties.primaryEndpoints.blob}?${storageSasToken}'
+
+resource storageSasSecret 'Microsoft.KeyVault/vaults/secrets@2024-12-01-preview' = {
+  parent: keyVault
+  name: 'storage-sas'
+  properties: {
+    contentType: 'string'
+    value: storageSasConnectionString
+  }
+  tags: {
+    storage: storageAccount.name
+  }
+}
+
+resource adfReaderRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
   scope: keyVault
   name: guid(keyVault.id, dataFactory.id, keyVaultReaderRoleId)
   properties: {
     roleDefinitionId: keyVaultReaderRoleId
+    principalId: dataFactory.identity.principalId
+    principalType: 'ServicePrincipal'
+  }
+}
+
+resource adfSecretsUserRoleAssignment 'Microsoft.Authorization/roleAssignments@2022-04-01' = {
+  scope: keyVault
+  name: guid(keyVault.id, dataFactory.id, keyVaultSecretsUserRoleId)
+  properties: {
+    roleDefinitionId: keyVaultSecretsUserRoleId
     principalId: dataFactory.identity.principalId
     principalType: 'ServicePrincipal'
   }
