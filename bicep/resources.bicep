@@ -69,8 +69,8 @@ var storageSasToken = listAccountSAS(storageAccount.name, '2021-04-01', {
 // Data Factory
 
 var repoConfiguration = {
-    accountName: 'Michael-Wisniewski'
-    repositoryName: 'test_adf'
+    accountName: 'UnleashData'
+    repositoryName: 'adf-deployment'
     disablePublish: true
     collaborationBranch: 'main'
     rootFolder: '/adf'
